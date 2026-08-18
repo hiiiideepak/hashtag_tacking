@@ -46,7 +46,7 @@ class MetaService {
     }
   }
 
-  async getTopMedia(hashtagId: string, limit: number = 20): Promise<InstagramMedia[]> {
+  async getTopMedia(hashtagId: string, limit: number = 5): Promise<InstagramMedia[]> {
     return this.getMediaFromEndpoint(
       `${this.baseUrl}/${this.apiVersion}/${hashtagId}/top_media`,
       limit
@@ -67,9 +67,12 @@ class MetaService {
     endpoint: string,
     limit: number
   ): Promise<InstagramMedia[]> {
+    const maxItemsPerPage: number = Number(process.env.MAX_ITEMS_PER_PAGE) || 10;
+    limit = limit ?? Number(process.env.LIMIT_PER_PAGE);
+
     const allMedia: InstagramMedia[] = [];
     let after: string | undefined;
-    const maxPages = Math.ceil(500 / limit);
+    const maxPages = Math.ceil(maxItemsPerPage / limit);
     let pageCount = 0;
 
     try {
@@ -94,6 +97,7 @@ class MetaService {
         }
 
         allMedia.push(...response.data.data);
+        console.log(`${allMedia.length} media pushed --`)
 
         if (
           !response.data.paging ||
